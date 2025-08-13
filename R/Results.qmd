@@ -1,0 +1,155 @@
+---
+title: "Crop yield forecasting with Sentinel-2"
+author: "Maria Yli-Heikkilä"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+We choose one tile only. The tile 34VFN is located in the southwestern Finland. We extract wheat fields from three years.
+
+```{r}
+#| echo: false
+.libPaths(c("/projappl/project_2009889/UN-Handbook-SITS/project_rpackages_4.5.1", .libPaths()))
+#libpath <- .libPaths()[1]
+#install.packages("sits", dependencies = TRUE)
+library(sits)
+
+library(tibble)
+
+# set tempdir if it does not exist 
+tempdir_r <- "/scratch/project_2009889/UN-EO-data-tmp/20250813"
+dir.create(tempdir_r, showWarnings = FALSE, recursive = TRUE)
+```
+
+We choose one tile only. The tile 34VFN is located in the southwestern Finland. We extract wheat fields from three years.
+
+
+```{r}
+#| echo: false
+# obtain a collection of images from a tile over Southwestern Finland in July 2024
+VFN_cube <- sits_cube(
+    source = "CDSE",
+    collection = "SENTINEL-2-L2A",
+    bands = c("B02", "B04", "B8A", "B11", "B12"),
+    start_date = "2024-06-15",
+    end_date = "2024-06-30",
+    tiles = c("34VFN")
+)
+
+```
+
+```{r}
+VFN_cube
+```
+
+
+```{r}
+#| echo: false
+# plot an image from July
+plot(
+    VFN_cube, 
+    date = "2024-06-25", 
+    red = "B12", 
+    green = "B8A", 
+    blue = "B04"
+)
+```
+
+```{r}
+#| echo: false
+# obtain a collection of images from two tiles over Southwestern Finland in July 2024
+s2_cube <- sits_cube(
+    source = "CDSE",
+    collection = "SENTINEL-2-L2A",
+    bands = c("B02", "B04", "B8A", "B11", "B12"),
+    start_date = "2024-06-15",
+    end_date = "2024-06-30",
+    tiles = c("34VFN", "34VEN")
+)
+
+```
+
+
+
+```{r}
+#| echo: false
+# plot the least cloudy image of the cube from 34VEN
+s2_cube |>  
+    dplyr::filter(tile == "34VEN") |>  
+    plot()
+```
+
+
+
+
+```{r}
+#| echo: false
+sits_timeline(s2_cube)
+```
+
+
+```{r}
+#| echo: false
+# set output dir for ARD data if it does not exist 
+tempdir_r_s2 <- "/scratch/project_2009889/UN-EO-data-tmp/20250813/regularize"
+dir.create(tempdir_r_s2, showWarnings = FALSE, recursive = TRUE)
+
+# with 2 tiles, this does not work:
+s2_cube_local <- sits_cube_copy(
+    cube = s2_cube,
+    output_dir = tempdir_r_s2
+)
+
+# Regularize the cube to 1-day intervals
+reg_s2_cube <- sits_regularize(
+          cube       = s2_cube_local,
+          output_dir = tempdir_r_s2,
+          res        = 10,
+          period     = "P1D",
+          multicores = 6)
+
+# Plot tile 34VEN of the regularized cube with the least cloud cover
+# The pixels of the regular data cube cover the full MGRS tile
+plot(reg_s2_cube, tile = "34VEN")
+
+
+```
+
+```{r}
+#| echo: false
+# with one tile only
+
+# ei onnistunut jostain syystä:
+VFN_cube_local <- sits_cube_copy(
+    cube = VFN_cube,
+    output_dir = tempdir_r_s2
+)
+
+# Regularize the cube to 1-day intervals
+reg_s2_cube <- sits_regularize(
+          cube       = VFN_cube_local,
+          output_dir = tempdir_r_s2,
+          res        = 10,
+          period     = "P1D",
+          multicores = 6)
+
+# Plot tile 34VEN of the regularized cube with the least cloud cover
+# The pixels of the regular data cube cover the full MGRS tile
+plot(reg_s2_cube, tile = "34VEN")
+
+
+```
+
+```{r}
+#| echo: false
+filepath <- "/scratch/project_2009889/cropyield2024/training/shpfiles/shpfiles_perTile/"
+"/scratch/project_2009889/UN-EO-data/wheatFields2024.shp"
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
