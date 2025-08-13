@@ -122,6 +122,7 @@ reg_s2_cube <- sits_regularize(
           multicores = 6)
 
 ```
+This above did not work either. Halt. The rest is undone.
 
 ```{r}
 #| echo: false
