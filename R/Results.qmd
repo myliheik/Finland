@@ -36,7 +36,7 @@ We choose one tile only. The tile 34VFN is located in the southwestern Finland. 
 VFN_cube <- sits_cube(
     source = "CDSE",
     collection = "SENTINEL-2-L2A",
-    bands = c("B02", "B04", "B8A", "B11", "B12"),
+    bands = c("B02", "B04", "B8A", "B11", "B12", "CLOUD"),
     start_date = "2024-06-15",
     end_date = "2024-06-30",
     tiles = c("34VFN")
@@ -67,7 +67,8 @@ plot(
 s2_cube <- sits_cube(
     source = "CDSE",
     collection = "SENTINEL-2-L2A",
-    bands = c("B02", "B04", "B8A", "B11", "B12"),
+    bands = c("B02", "B04", "B8A", "B11", "B12", "CLOUD"),
+    #bands = c("B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12", "CLOUD"),
     start_date = "2024-06-15",
     end_date = "2024-06-30",
     tiles = c("34VFN", "34VEN")
@@ -108,40 +109,23 @@ s2_cube_local <- sits_cube_copy(
 
 
 ```
+This above did not work. Could not save the cube locally. Next I try to do regularization from s2_cube:
+
+
 ```{r}
 # Regularize the cube to 1-day intervals
 reg_s2_cube <- sits_regularize(
-          cube       = s2_cube_local,
+          cube       = s2_cube,
           output_dir = tempdir_r_s2,
           res        = 10,
           period     = "P1D",
           multicores = 6)
 
-# Plot tile 34VEN of the regularized cube with the least cloud cover
-# The pixels of the regular data cube cover the full MGRS tile
-plot(reg_s2_cube, tile = "34VEN")
 ```
 
 ```{r}
 #| echo: false
-# with one tile only
-
-# ei onnistunut jostain syystä:
-VFN_cube_local <- sits_cube_copy(
-    cube = VFN_cube,
-    output_dir = tempdir_r_s2
-)
-
-# Regularize the cube to 1-day intervals
-reg_s2_cube <- sits_regularize(
-          cube       = VFN_cube_local,
-          output_dir = tempdir_r_s2,
-          res        = 10,
-          period     = "P1D",
-          multicores = 6)
-
 # Plot tile 34VEN of the regularized cube with the least cloud cover
-# The pixels of the regular data cube cover the full MGRS tile
 plot(reg_s2_cube, tile = "34VEN")
 
 
