@@ -106,6 +106,9 @@ s2_cube_local <- sits_cube_copy(
     output_dir = tempdir_r_s2
 )
 
+
+```
+```{r}
 # Regularize the cube to 1-day intervals
 reg_s2_cube <- sits_regularize(
           cube       = s2_cube_local,
@@ -117,8 +120,6 @@ reg_s2_cube <- sits_regularize(
 # Plot tile 34VEN of the regularized cube with the least cloud cover
 # The pixels of the regular data cube cover the full MGRS tile
 plot(reg_s2_cube, tile = "34VEN")
-
-
 ```
 
 ```{r}
